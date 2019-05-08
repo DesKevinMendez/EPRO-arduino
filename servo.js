@@ -1,36 +1,59 @@
-var five = require("johnny-five");
-var keypress = require("keypress");
+var app = require('http').createServer(handler)
+  , io = require('socket.io').listen(app)
+  , fs = require('fs')
+  , five = require("johnny-five"),
+  board,servo,led,sensor;
 
-keypress(process.stdin);
 var board = new five.Board();
 
 board.on("ready", function() {
-    console.log("Use Up and Down arrows for CW and CCW respectively. Space to stop.");
-    var servo = new five.Servo.Continuous({
-        pin: 10,
-        range: [90, 190]
+
+
+  // init a led on pin 13, strobe every 1000ms
+  led = new five.Led(13).strobe(1000);
+
+  servo = new five.Servo.Continuous({
+      pin: 10,
+      center:true,
+      range: [0, 180]
     });
 
-    process.stdin.resume();
-    process.stdin.setEncoding("utf8");
-    process.stdin.setRawMode(true);
-    process.stdin.on("keypress", function(ch, key) {
-        if (!key) { // if no key is pressed, return i.e do nothing.
-          return;
-        }
-
-        if (key.name === "q") {
-          console.log("Quitting");
-          process.exit();
-        } else if (key.name === "up") {
-          console.log("CW");
-          servo.cw();
-        } else if (key.name === "down") {
-          console.log("CCW");
-          servo.ccw();
-        } else if (key.name === "space") {
-          console.log("Stopping");
-          servo.stop();
-        }
-      });
     });
+
+// make web server listen on port 80
+app.listen(80);
+
+
+// handle web server
+function handler (req, res) {
+  console.log(req);
+  fs.readFile(__dirname + '/index.html',
+  function (err, data) {
+    if (err) {
+      res.writeHead(500);
+      return res.end('Error loading index.html');
+    }
+
+    res.writeHead(200);
+    res.end(data);
+  });
+}
+
+
+// on a socket connection
+
+// on a socket connection
+io.sockets.on('connection', function (socket) {
+  socket.emit('news', { hello: 'world' });
+  // if servo message received
+  socket.on('servo', function (data) {
+    console.log(data);
+    if(board.isReady){ servo.to(data.pos);  }
+  });
+  // if led message received
+  socket.on('led', function (data) {
+    console.log(data);
+     if(board.isReady){    led.strobe(data.delay); }
+  });
+
+});
