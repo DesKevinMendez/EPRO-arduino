@@ -35,10 +35,10 @@
           <div id="app" class="conteiner">
             <div class="sidebar col-md-4">
               <section class="cameras">
-                <h2>Cameras</h2>
+                <h2>Camáras</h2>
                 <ul>
                   <li v-if="cameras.length === 0" class="empty">
-                    No cameras found
+                    No se encontraron camáras
                   </li>
                   <li v-for="camera in cameras">
                     <span
@@ -59,17 +59,32 @@
                 </ul>
               </section>
               <section class="scans">
-                <h2>Scans</h2>
+                <h2>Scaners</h2>
                 <ul v-if="scans.length === 0">
-                  <li class="empty">No scans yet</li>
+                  <li class="empty">Sin scaneos aún</li>
                 </ul>
                 <transition-group name="scans" tag="ul">
                   <li
                     v-for="scan in scans"
                     :key="scan.date"
                     :title="scan.content"
+                    style="padding: 0px"
                   >
-                    {{ scan.content }}
+                    <div
+                      v-if="scan.enviado === 'ok'"
+                      class="alert alert-success"
+                    >
+                      {{ scan.content }}
+                    </div>
+                    <div
+                      v-if="scan.enviado === 'failed'"
+                      class="alert alert-danger"
+                    >
+                      {{ scan.content }}
+                    </div>
+                    <div v-if="scan.enviado === ''" class="alert alert-info">
+                      Debe de ser un email
+                    </div>
                   </li>
                 </transition-group>
               </section>
@@ -85,6 +100,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
@@ -109,13 +125,12 @@
             scanPeriod: 5
           });
           self.scanner.addListener('scan', function(content, image) {
-            self.scans.unshift({ date: +Date.now(), content: content });
-            // Se dispara evento para que el servo se ponga en 190°
-
-            socket.emit('servo', { pos: 190 });
-            setTimeout(() => {
-              socket.emit('servo', { pos: 90 });
-            }, 10000);
+            console.log(content);
+            self.scans.unshift({
+              date: +Date.now(),
+              content: content,
+              enviado: ''
+            });
           });
           Instascan.Camera.getCameras()
             .then(function(cameras) {
@@ -146,6 +161,29 @@
           selectCamera: function(camera) {
             this.activeCameraId = camera.id;
             this.scanner.start(camera);
+          }
+        },
+        watch: {
+          scans: function(email) {
+            console.log(email);
+            const sendEmail = email[0].content;
+            axios
+              .post('http://127.0.0.1:8000/api/nuevoingresoparqueo', {
+                email: sendEmail
+              })
+              .then(resp => {
+                if (resp.data === 1) {
+                  email[0].enviado = 'ok';
+                  // Se dispara evento para que el servo se ponga en 190°
+
+                  socket.emit('servo', { pos: 190 });
+                  setTimeout(() => {
+                    socket.emit('servo', { pos: 90 });
+                  }, 10000);
+                } else {
+                  email[0].enviado = 'failed';
+                }
+              });
           }
         }
       });
