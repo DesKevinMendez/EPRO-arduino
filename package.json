@@ -12,6 +12,7 @@
     "express": "^4.16.4",
     "firmata-party": "^1.5.10",
     "johnny-five": "^1.0.0",
+    "keypress": "^0.2.1",
     "socket.io": "^2.2.0"
   }
 }
