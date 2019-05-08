@@ -44,7 +44,6 @@ function handler (req, res) {
 
 // on a socket connection
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
   // if servo message received
   socket.on('servo', function (data) {
     console.log(data);
