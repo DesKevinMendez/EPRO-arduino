@@ -1,0 +1,17 @@
+{
+  "name": "arduino",
+  "version": "1.0.0",
+  "description": "Codigo de pruebas para arduino y js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kevin Mendez",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "firmata-party": "^1.5.10",
+    "johnny-five": "^1.0.0",
+    "socket.io": "^2.2.0"
+  }
+}
