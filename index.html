@@ -236,7 +236,7 @@
             console.log(email);
             const sendEmail = email[0].content;
             axios
-              .post('http://127.0.0.1:8000/api/nuevoingresoparqueo', {
+              .post('http://192.168.208.131/api/nuevoingresoparqueo', {
                 email: sendEmail
               })
               .then(resp => {
