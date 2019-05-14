@@ -235,11 +235,15 @@
           scans: function(email) {
             console.log(email);
             const sendEmail = email[0].content;
+            // const url = 'http://192.168.208.131/api/nuevoingresoparqueo';
+            const url = 'http://127.0.0.1:8000/api/nuevoingresoparqueo';
+            // const url = "https://estandares-programacion.herokuapp.com/api/nuevoingresoparqueo"
             axios
-              .post('http://192.168.208.131/api/nuevoingresoparqueo', {
+              .post(url, {
                 email: sendEmail
               })
               .then(resp => {
+                console.log(resp);
                 if (resp.data === 1) {
                   email[0].enviado = 'ok';
                   // Se dispara evento para que el servo se ponga en 190°
@@ -247,7 +251,7 @@
                   socket.emit('servo', { pos: 190 });
                   setTimeout(() => {
                     socket.emit('servo', { pos: 90 });
-                  }, 10000);
+                  }, 5000);
                 } else {
                   email[0].enviado = 'failed';
                 }
